@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/fragment_first">
+
+    <fragment
+        android:id="@+id/fragment_first"
+        android:name="com.github.nagnoletti.android.fluttermoduleintegrationapp.FirstFragment">
+        <action
+            android:id="@+id/first_to_custom_flutter"
+            app:destination="@id/fragment_custom_flutter" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_custom_flutter"
+        android:name="com.github.nagnoletti.android.fluttermoduleintegrationapp.CustomFlutterFragment" />
+
+</navigation>

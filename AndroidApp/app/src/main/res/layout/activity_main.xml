@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_open_default_flutter_activity_running_route"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Open default FlutterActivity\n(cached or new engine)\nrunning route" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_open_default_flutter_activity_on_route_a"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Open default FlutterActivity\n(cached or new engine)\non route '/a'" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_open_custom_flutter_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Open custom FlutterActivity\nw/cached or new engine" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_second_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Open SecondActivity" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

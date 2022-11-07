@@ -1,4 +1,4 @@
-package com.github.nagnoletti.android.fluttermoduleintegrationlib
+package com.github.nagnoletti.android.flutterbox
 
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterFragment

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace 'com.github.nagnoletti.android.fluttermoduleintegrationlib'
+    namespace 'com.github.nagnoletti.android.flutterbox'
     compileSdk 32
 
     defaultConfig {

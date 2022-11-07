@@ -4,8 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import com.github.nagnoletti.android.fluttermoduleintegrationlib.FlutterBox
-import com.github.nagnoletti.android.fluttermoduleintegrationapp.R
+import com.github.nagnoletti.android.flutterbox.FlutterBox
 
 class MainActivity : AppCompatActivity() {
 

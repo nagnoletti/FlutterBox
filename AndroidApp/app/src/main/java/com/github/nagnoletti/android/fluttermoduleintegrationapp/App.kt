@@ -1,7 +1,7 @@
 package com.github.nagnoletti.android.fluttermoduleintegrationapp
 
 import android.app.Application
-import com.github.nagnoletti.android.fluttermoduleintegrationlib.FlutterBox
+import com.github.nagnoletti.android.flutterbox.FlutterBox
 
 class App: Application() {
 

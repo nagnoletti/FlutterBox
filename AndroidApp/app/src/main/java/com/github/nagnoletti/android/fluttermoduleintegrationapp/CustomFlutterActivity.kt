@@ -3,7 +3,7 @@ package com.github.nagnoletti.android.fluttermoduleintegrationapp
 import android.content.Context
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
-import com.github.nagnoletti.android.fluttermoduleintegrationlib.FlutterBoxActivity
+import com.github.nagnoletti.android.flutterbox.FlutterBoxActivity
 
 class CustomFlutterActivity : FlutterBoxActivity() {
 

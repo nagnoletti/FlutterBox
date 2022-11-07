@@ -2,7 +2,7 @@ package com.github.nagnoletti.android.fluttermoduleintegrationapp
 
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
-import com.github.nagnoletti.android.fluttermoduleintegrationlib.FlutterBoxFragment
+import com.github.nagnoletti.android.flutterbox.FlutterBoxFragment
 
 class CustomFlutterFragment : FlutterBoxFragment() {
 

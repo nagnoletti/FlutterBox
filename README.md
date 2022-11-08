@@ -1,5 +1,5 @@
 # FlutterBox
-Libraries for Android and iOS to enclose the Flutter SDK and provide a simpler API
+Native mobile libraries to make embedding of a Flutter module easier.
 
 ## Resources
 - [Android library](AndroidApp/flutterbox)

@@ -8,6 +8,6 @@ class App: Application() {
     override fun onCreate() {
         super.onCreate()
 
-        FlutterBox.init(this, options = FlutterBox.Options("/a"))
+        FlutterBox.initialize(this)
     }
 }

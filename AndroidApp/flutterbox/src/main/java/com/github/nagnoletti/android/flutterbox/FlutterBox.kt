@@ -1,195 +1,120 @@
 package com.github.nagnoletti.android.flutterbox
 
 import android.content.Context
-import android.content.Intent
-import androidx.annotation.UiThread
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.android.FlutterActivity.CachedEngineIntentBuilder
-import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.FlutterEngineGroup
-import io.flutter.embedding.engine.dart.DartExecutor.DartEntrypoint
+import io.flutter.embedding.engine.dart.DartExecutor
 import java.util.*
-import kotlin.reflect.KClass
 
 /**
- * Tool to include a Flutter module within a native Android application with defaults to make it
- * easier and keep dependency to Flutter SDK enclosed.
- * Initialize it on app start with [FlutterBox.init].
- * You can perform engine warmup to avoid latency starting the Flutter app with
- * [FlutterBox.warmup].
- * Launch a [FlutterActivity] with the default [DartEntrypoint] with
- * [FlutterBox.launchDefaultActivityIntent] or extending [FlutterBoxActivity] and
- * [FlutterBoxFragment].
+ * FlutterBox
  */
 object FlutterBox {
+    private val className: String get() = FlutterBox::javaClass.name
 
-    private lateinit var engineGroup: FlutterEngineGroup
+    private const val initializerEngineID = "FlutterBox.initializerEngineID"
+    private const val initializerScreenID = "FlutterBox.initializerScreenID"
 
-    internal var activeEngineData: ActiveEngineData? = null
-        private set
+    private var engineGroup: FlutterEngineGroup? = null
 
-    /**
-     * Init [FlutterBox]
-     * Initializes the [FlutterEngineGroup] containing engines to start the Flutter app.
-     */
-    @UiThread
-    fun init(
-        appContext: Context,
-        dartVmArgs: Array<String>? = null,
-        options: Options?
-    ) {
-        engineGroup = FlutterEngineGroup(appContext, dartVmArgs)
-        options?.let { warmup(appContext, options) }
-    }
+    private val assignedEngineIDs = mutableMapOf<String, String>()
 
-    /**
-     * Initializes the first engine for later use and smoother transition to the Flutter app
-     * the first time it opens.
-     */
-    private fun warmup(
-        appContext: Context,
-        options: Options
-    ) {
-        maybeThrowNotInitialized()
-        if (activeEngineData?.activatedOnWarmup == true) {
-            throw Exception.AlreadyWarmedUp
-        }
-
-        val (id, engine) = newIdEnginePairFromGroup(appContext, options.route)
-        activeEngineData = ActiveEngineData(id, true)
-        FlutterEngineCache.getInstance().put(id, engine)
-    }
-
-    internal fun resetRoute(appContext: Context, route: String) {
-        maybeThrowNotInitialized()
-        if (activeEngineData != null) {
-            generateAndCacheNewActiveEngine(appContext, route)
+    fun initialize(context: Context) {
+        checkMultipleInitializationsError {
+            val eg = FlutterEngineGroup(context)
+            engineGroup = eg
+            eg.initialize(context)
         }
     }
 
-    /**
-     * @throws [Exception.NotInitialized] if the [FlutterEngineGroup] used by [FlutterBox]
-     * was initialized before this moment.
-     */
-    private fun maybeThrowNotInitialized() {
-        if (!FlutterBox::engineGroup.isInitialized) {
-            throw Exception.NotInitialized
+    fun getOwnOrNewEngineID(
+        context: Context,
+        screenID: String,
+        engineID: String? = null,
+        opts: Options? = null
+    ): String = checkNotInitializedError {
+        cacheAndRunNewEngineToGetID(context, screenID, engineID, opts)
+    }
+
+    private fun <T> checkNotInitializedError(then: FlutterEngineGroup.() -> T): T {
+        val eg = engineGroup
+        eg ?: throw Error.NotInitialized
+        return eg.then()
+    }
+
+    private fun <T> checkMultipleInitializationsError(then: () -> T): T {
+        val eg = engineGroup
+        return if (eg != null) {
+            val engine = FlutterEngineCache.getInstance().get(initializerEngineID)
+            if (engine != null) {
+                throw Error.MultipleInitializations
+            } else {
+                throw Error.Unexpected
+            }
+        } else {
+            then()
         }
     }
 
-    /**
-     * Makes an intent to start the default [FlutterActivity] and launches it.
-     */
-    @UiThread
-    fun launchDefaultActivityIntent(
-        appContext: Context,
-        initialRoute: String? = null
-    ) = appContext.startActivity(
-        makeActivityIntent(appContext, FlutterActivity::class, initialRoute)
+    private fun checkEngineIDAlreadyUsedError(engineID: String) {
+        if (FlutterEngineCache.getInstance().get(engineID) != null) {
+            throw Error.EngineIDAlreadyUsed(engineID)
+        }
+    }
+
+    private fun FlutterEngineGroup.initialize(context: Context) = cacheAndRunNewEngineToGetID(
+        context,
+        screenID = initializerScreenID,
+        engineID = initializerEngineID
     )
 
-    /**
-     * Creates a new [FlutterEngine] overwriting [activeEngineData] and caching it into
-     * [FlutterEngineCache].
-     * @returns id of the newly created [FlutterEngine].
-     */
-    private fun generateAndCacheNewActiveEngine(
-        appContext: Context,
-        initialRoute: String?
+    private fun FlutterEngineGroup.cacheAndRunNewEngineToGetID(
+        context: Context,
+        screenID: String,
+        engineID: String? = null,
+        opts: Options? = null
     ): String {
-        val (id, engine) = newIdEnginePairFromGroup(appContext, initialRoute)
-        activeEngineData = ActiveEngineData(id, false)
-        FlutterEngineCache.getInstance().put(id, engine)
-        return id
+        engineID?.let { checkEngineIDAlreadyUsedError(it) }
+
+        val options = FlutterEngineGroup.Options(context).apply {
+            dartEntrypoint = DartExecutor.DartEntrypoint.createDefault()
+            dartEntrypointArgs = opts?.arguments ?: listOf()
+            initialRoute = opts?.initialRoute
+        }
+
+        val engine = createAndRunEngine(options)
+        val newEngineID = engineID ?: UUID.randomUUID().toString()
+
+        if (screenID != initializerScreenID) {
+            assignedEngineIDs[screenID] = newEngineID
+        }
+
+        FlutterEngineCache.getInstance().put(newEngineID, engine)
+        return newEngineID
     }
 
-    /**
-     * Makes an intent to start a custom [FlutterActivity].
-     * If the [FlutterEngineGroup] used by [FlutterBox] is not initialized an exception is
-     * thrown.
-     *
-     * @return [Intent] to launch the activity running the Flutter module's app.
-     */
-    private fun makeActivityIntent(
-        appContext: Context,
-        activityClass: KClass<out FlutterActivity>,
-        initialRoute: String?,
-    ): Intent {
-        maybeThrowNotInitialized()
+    open class Options {
+        open val initialRoute: String? = null
+        open val arguments: List<String>? = null
+    }
 
-        return when (val data = activeEngineData) {
-            null -> {
-                val id = generateAndCacheNewActiveEngine(appContext, initialRoute)
-                CachedEngineIntentBuilder(activityClass.java, id).build(appContext)
-            }
-            else -> {
-                when (/*val activeEngine = */FlutterEngineCache.getInstance().get(data.id)) {
-                    null -> {
-                        activeEngineData = null
-                        makeActivityIntent(appContext, activityClass, initialRoute)
-                    }
-                    else -> {
-                        if (initialRoute != null) {
-                            activeEngineData = null
-                            val intent = makeActivityIntent(appContext, activityClass, initialRoute)
-                            // Remove engine from cache after creating a new one
-                            FlutterEngineCache.getInstance().remove(data.id)
-                            intent
-                        } else {
-                            val intent = CachedEngineIntentBuilder(
-                                activityClass.java,
-                                data.id
-                            ).build(appContext)
-                            intent
-                        }
-                    }
-                }
-            }
+    sealed class Error : java.lang.Exception() {
+        object MultipleInitializations : Error() {
+            override val message: String = "Initialize $className only once."
+        }
+
+        object NotInitialized : Error() {
+            override val message: String = "$className should be initialized before using it. " +
+                    "Call $className.${FlutterBox::initialize.name} before opening a Flutter screen."
+        }
+
+        data class EngineIDAlreadyUsed(val engineID: String) : Error() {
+            override val message: String =
+                "Engine ID \"$engineID\" already used. Make sure to always provide distinct engine IDs."
+        }
+
+        object Unexpected : Error() {
+            override val message: String = "Unexpected error."
         }
     }
-
-    /**
-     * Create (and run) a new id-engine pair from [engineGroup].
-     */
-    private fun newIdEnginePairFromGroup(
-        appContext: Context,
-        initialRoute: String?
-    ): Pair<String, FlutterEngine> {
-        val newEngineId = UUID.randomUUID().toString()
-        val newEngine = engineGroup.createAndRunEngine(
-            appContext,
-            DartEntrypoint.createDefault(),
-            initialRoute
-        )
-        return newEngineId to newEngine
-    }
-
-    /**
-     * Predictable exceptions that the [FlutterBox] can throw using it.
-     */
-    sealed class Exception(message: String) : kotlin.Exception(message) {
-
-        /**
-         * Use to signal that no one called [FlutterBox.init] before using
-         * [FlutterBox].
-         */
-        object NotInitialized : Exception(
-            "FlutterManager has not been initialized. Call ${FlutterBox::init} on FlutterManager to do so."
-        )
-
-        /**
-         * Signal that warmup has already been performed
-         */
-        object AlreadyWarmedUp :
-            Exception("Tried to call ${FlutterBox::warmup} but engine was already warmed up.")
-
-    }
-
-    data class ActiveEngineData(
-        val id: String,
-        val activatedOnWarmup: Boolean
-    )
-
-    data class Options(val route: String? = null)
 }

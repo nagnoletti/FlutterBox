@@ -1,18 +1,25 @@
 package com.github.nagnoletti.android.fluttermoduleintegrationapp
 
-import android.content.Context
-import io.flutter.plugin.common.BinaryMessenger
-import io.flutter.plugin.common.MethodChannel
+import com.github.nagnoletti.android.flutterbox.FlutterBox
 import com.github.nagnoletti.android.flutterbox.FlutterBoxActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
 class CustomFlutterActivity : FlutterBoxActivity() {
 
-    companion object {
-        fun intent(context: Context) = intent(context, CustomFlutterActivity::class.java, "/a")
-    }
+    override val flutterBoxOptions =
+        GreetingFlutterBoxOptions("/a", "Hello from owner $flutterScreenID! (Activity)")
 
-    override fun configureChannels(bm: BinaryMessenger) {
-        val mca = MethodChannel(bm, "method_channel_a")
+    override fun getCachedEngineId(): String = FlutterBox.getOwnOrNewEngineID(
+        this,
+        screenID = flutterScreenID,
+        opts = flutterBoxOptions
+    )
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        val mca = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "method_channel_a")
         mca.setMethodCallHandler { call, result ->
             when (call.method) {
                 "ping" -> result.success("pong")

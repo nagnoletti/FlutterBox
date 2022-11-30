@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.github.nagnoletti.android.fluttermoduleintegrationapp.R
 
 class FirstFragment : Fragment() {
 
@@ -20,12 +19,11 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val openFlutterFragmentButton =
-            view.findViewById<AppCompatButton>(R.id.button_open_flutter_fragment)
-        openFlutterFragmentButton.setOnClickListener {
-            // NOTE: navigating to a FlutterFragment requires nav arguments (Bundle.EMPTY)
-            // otherwise the SDK fails retrieving arguments from fragment's getArguments().
+        view.findViewById<AppCompatButton>(R.id.button_open_flutter_fragment).setOnClickListener {
+            // NOTE: Passing Bundle is required for a custom FlutterFragment to work properly with Jetpack navigation.
             // findNavController().navigate(R.id.first_to_custom_flutter, Bundle.EMPTY)
+
+            // Passing custom bundle to let Flutter handle back presses automatically
             findNavController().navigate(
                 R.id.first_to_custom_flutter,
                 CustomFlutterFragment.bundle()

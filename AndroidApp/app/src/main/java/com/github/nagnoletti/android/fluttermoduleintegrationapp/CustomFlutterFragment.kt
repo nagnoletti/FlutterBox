@@ -11,13 +11,13 @@ class CustomFlutterFragment : FlutterBoxFragment() {
         fun bundle() = defaultBundle()
     }
 
-    override val flutterScreenID = "Very unique ID"
+    override val screenID = "Very unique ID"
     override val flutterBoxOptions =
-        GreetingFlutterBoxOptions("/a", "Hello from owner $flutterScreenID! (Fragment)")
+        GreetingFlutterBoxOptions("/a", "Hello from owner $screenID! (Fragment)")
 
-    override fun getCachedEngineId(): String = FlutterBox.getOwnOrNewEngineID(
+    override fun getCachedEngineId(): String = FlutterBox.getScreenEngineID(
         requireContext(),
-        screenID = flutterScreenID,
+        screenID = screenID,
         opts = flutterBoxOptions
     )
 

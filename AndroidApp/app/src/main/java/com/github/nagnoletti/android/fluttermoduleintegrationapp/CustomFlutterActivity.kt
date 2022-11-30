@@ -8,11 +8,11 @@ import io.flutter.plugin.common.MethodChannel
 class CustomFlutterActivity : FlutterBoxActivity() {
 
     override val flutterBoxOptions =
-        GreetingFlutterBoxOptions("/a", "Hello from owner $flutterScreenID! (Activity)")
+        GreetingFlutterBoxOptions("/a", "Hello from owner $screenID! (Activity)")
 
-    override fun getCachedEngineId(): String = FlutterBox.getOwnOrNewEngineID(
+    override fun getCachedEngineId(): String = FlutterBox.getScreenEngineID(
         this,
-        screenID = flutterScreenID,
+        screenID = screenID,
         opts = flutterBoxOptions
     )
 

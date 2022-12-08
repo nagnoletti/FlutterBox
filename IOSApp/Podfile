@@ -1,0 +1,27 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '13.0'
+
+workspace 'IOSApp'
+# Comment the next line if you don't want to use dynamic frameworks
+use_frameworks!
+
+def flutter_box_dependencies
+  # Pick pods from Flutter folder, depending on project configuration;
+  # The provided name makes the script point to the right ".podspec" file.
+  pod 'FlutterDebug', :configurations => ['Debug'], :path => 'Flutter/'
+  pod 'FlutterRelease', :configurations => ['Release'], :path => 'Flutter/'
+end
+
+target 'FlutterBox' do
+  # Specify where to find this target
+  project 'FlutterBox/FlutterBox.xcodeproj'
+  flutter_box_dependencies
+end
+
+target 'IOSApp' do
+  
+  # Pods for IOSApp
+  #    - FlutterBox inner dependency
+  flutter_box_dependencies
+end
+
